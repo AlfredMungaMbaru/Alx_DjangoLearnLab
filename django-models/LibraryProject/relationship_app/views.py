@@ -90,8 +90,10 @@ def add_book(request):
     return render(request, 'relationship_app/add_book.html', {'form': form})
 
 @permission_required('relationship_app.can_change_book', raise_exception=True)
-def edit_book(request, pk):
-    book = get_object_or_404(Book, pk=pk)
+def edit_book(request, pk=None, book_id=None):
+    # Handle both pk and book_id parameters
+    book_pk = pk if pk is not None else book_id
+    book = get_object_or_404(Book, pk=book_pk)
     if request.method == 'POST':
         form = BookForm(request.POST, instance=book)
         if form.is_valid():
