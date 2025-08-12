@@ -10,7 +10,7 @@ def books_in_library(library_name):
 
 def librarian_for_library(library_name):
     library = Library.objects.get(name=library_name)
-    return library.librarian
+    return Librarian.objects.get(library=library)
 
 # Example usage (uncomment to run in Django shell):
 # print(books_by_author('John Doe'))
