@@ -2,36 +2,17 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Post
 from .forms import CustomUserCreationForm, UserUpdateForm
 
 # Create your views here.
 
-def post_list(request):
-    """Display a list of all published posts"""
-    posts = Post.objects.all().order_by('-published_date')
-    
-    # Add pagination
-    paginator = Paginator(posts, 5)  # Show 5 posts per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'posts': page_obj,
-        'page_obj': page_obj,
-    }
-    return render(request, 'blog/post_list.html', context)
-
-def post_detail(request, post_id):
-    """Display a single post"""
-    post = get_object_or_404(Post, id=post_id)
-    context = {
-        'post': post,
-    }
-    return render(request, 'blog/post_detail.html', context)
-
+# Function-based views for authentication
 def register(request):
     """User registration view"""
     if request.method == 'POST':
@@ -66,3 +47,83 @@ def profile(request):
         'user_posts': user_posts
     }
     return render(request, 'blog/profile.html', context)
+
+# Class-based views for blog post CRUD operations
+
+class PostListView(ListView):
+    """Display a paginated list of all blog posts"""
+    model = Post
+    template_name = 'blog/post_list.html'
+    context_object_name = 'posts'
+    ordering = ['-published_date']
+    paginate_by = 5
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_obj'] = context['page_obj']
+        return context
+
+class PostDetailView(DetailView):
+    """Display a single blog post"""
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    """Create a new blog post - requires authentication"""
+    model = Post
+    fields = ['title', 'content']
+    template_name = 'blog/post_form.html'
+    
+    def form_valid(self, form):
+        """Set the author to the current user before saving"""
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Your post has been created successfully!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('blog:post_detail', kwargs={'pk': self.object.pk})
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Update an existing blog post - only by the author"""
+    model = Post
+    fields = ['title', 'content']
+    template_name = 'blog/post_form.html'
+    
+    def form_valid(self, form):
+        """Add success message when post is updated"""
+        messages.success(self.request, 'Your post has been updated successfully!')
+        return super().form_valid(form)
+    
+    def test_func(self):
+        """Ensure only the post author can edit the post"""
+        post = self.get_object()
+        return self.request.user == post.author
+    
+    def get_success_url(self):
+        return reverse_lazy('blog:post_detail', kwargs={'pk': self.object.pk})
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Delete a blog post - only by the author"""
+    model = Post
+    template_name = 'blog/post_confirm_delete.html'
+    success_url = reverse_lazy('blog:post_list')
+    
+    def delete(self, request, *args, **kwargs):
+        """Add success message when post is deleted"""
+        messages.success(self.request, 'Your post has been deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+    
+    def test_func(self):
+        """Ensure only the post author can delete the post"""
+        post = self.get_object()
+        return self.request.user == post.author
+
+# Legacy function-based views (kept for backward compatibility)
+def post_list(request):
+    """Display a list of all published posts - redirects to class-based view"""
+    return redirect('blog:posts')
+
+def post_detail(request, post_id):
+    """Display a single post - redirects to class-based view"""
+    return redirect('blog:post_detail', pk=post_id)

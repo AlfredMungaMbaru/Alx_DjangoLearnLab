@@ -7,10 +7,31 @@
     <div class="col-md-8">
         <article class="blog-post">
             <header class="mb-4">
-                <h1 class="display-5">{{ post.title }}</h1>
-                <p class="text-muted">
-                    By <strong>{{ post.author.username }}</strong> on {{ post.published_date|date:"F d, Y" }}
-                </p>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h1 class="display-5">{{ post.title }}</h1>
+                        <p class="text-muted">
+                            By <strong>{{ post.author.username }}</strong> on {{ post.published_date|date:"F d, Y" }}
+                        </p>
+                    </div>
+                    
+                    {% if user == post.author %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Manage Post
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'blog:post_update' post.pk %}">
+                                    <i class="fas fa-edit"></i> Edit Post
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'blog:post_delete' post.pk %}">
+                                    <i class="fas fa-trash"></i> Delete Post
+                                </a></li>
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
             </header>
             
             <div class="blog-content">
@@ -18,7 +39,21 @@
             </div>
             
             <footer class="mt-4 pt-3 border-top">
-                <a href="{% url 'blog:post_list' %}" class="btn btn-secondary">← Back to Posts</a>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'blog:posts' %}" class="btn btn-secondary">← Back to Posts</a>
+                    
+                    {% if user.is_authenticated and user != post.author %}
+                        <div class="text-muted">
+                            <small>Written by {{ post.author.get_full_name|default:post.author.username }}</small>
+                        </div>
+                    {% endif %}
+                    
+                    {% if not user.is_authenticated %}
+                        <div>
+                            <a href="{% url 'blog:login' %}" class="btn btn-outline-primary btn-sm">Login to Write</a>
+                        </div>
+                    {% endif %}
+                </div>
             </footer>
         </article>
     </div>
@@ -31,6 +66,9 @@
             <div class="card-body">
                 <h6>{{ post.author.get_full_name|default:post.author.username }}</h6>
                 <p class="text-muted">Blog contributor</p>
+                {% if post.author.email %}
+                    <p class="small text-muted">{{ post.author.email }}</p>
+                {% endif %}
             </div>
         </div>
         
@@ -42,8 +80,30 @@
                 <p><strong>Published:</strong> {{ post.published_date|date:"F d, Y \a\t g:i A" }}</p>
                 <p><strong>Author:</strong> {{ post.author.username }}</p>
                 <p><strong>Word count:</strong> {{ post.content|wordcount }}</p>
+                <p><strong>Reading time:</strong> ~{{ post.content|wordcount|floatformat:0|add:"200"|div:200 }} min</p>
             </div>
         </div>
+        
+        {% if user.is_authenticated %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if user == post.author %}
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'blog:post_update' post.pk %}" class="btn btn-primary btn-sm">Edit This Post</a>
+                            <a href="{% url 'blog:post_delete' post.pk %}" class="btn btn-outline-danger btn-sm">Delete This Post</a>
+                        </div>
+                    {% else %}
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'blog:post_create' %}" class="btn btn-primary btn-sm">Write Your Own Post</a>
+                            <a href="{% url 'blog:profile' %}" class="btn btn-outline-primary btn-sm">View Your Posts</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

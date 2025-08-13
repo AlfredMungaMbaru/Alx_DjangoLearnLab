@@ -4,14 +4,15 @@ A comprehensive Django blog application built as part of the ALX Django learning
 
 ## Features
 
+- **Complete CRUD Operations**: Create, read, update, and delete blog posts with intuitive interface
 - **User Authentication**: Complete registration, login, logout, and profile management system
-- **Post Management**: Create, read, update, and delete blog posts through admin interface
-- **User Profiles**: Users can view and edit their profile information and see their posts
-- **Responsive Design**: Mobile-friendly interface using Bootstrap
-- **Pagination**: Efficient handling of multiple blog posts
-- **Admin Interface**: Django admin panel for content management
-- **Static Files**: CSS and JavaScript for enhanced user experience
-- **Security**: CSRF protection, secure password handling, and session management
+- **Author Permissions**: Only post authors can edit or delete their own posts
+- **Post Management**: Users can view and edit their profile information and manage all their posts
+- **Responsive Design**: Mobile-friendly interface using Bootstrap with modern UI components
+- **Pagination**: Efficient handling of multiple blog posts with smooth navigation
+- **Admin Interface**: Django admin panel for content management and user administration
+- **Static Files**: Enhanced CSS and JavaScript for rich user experience
+- **Security**: CSRF protection, secure password handling, permission-based access control
 
 ## Project Structure
 
@@ -121,7 +122,20 @@ For demonstration purposes, a default superuser has been created:
 1. While logged in, navigate to `/profile/` or click "Profile"
 2. View your account information and statistics
 3. Update your profile details as needed
-4. See a list of all your blog posts
+4. See a list of all your blog posts with management options
+
+#### Writing Blog Posts
+1. Log in to your account
+2. Click "Write New Post" on the home page or navigation
+3. Enter a descriptive title (5-200 characters)
+4. Write your blog content (minimum 20 characters)
+5. Click "Publish Post" to make it live
+
+#### Managing Your Posts
+1. View your posts on your profile page or the main blog
+2. Click "Edit" to modify title or content
+3. Click "Delete" to remove a post (with confirmation)
+4. Use the management dropdown on post cards for quick actions
 
 ### Viewing Blog Posts
 - Navigate to the home page to see all published blog posts
