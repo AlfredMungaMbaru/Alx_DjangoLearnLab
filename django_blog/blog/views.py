@@ -149,18 +149,18 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         """Set the comment author and associated post"""
         form.instance.author = self.request.user
-        form.instance.post = get_object_or_404(Post, pk=self.kwargs['post_pk'])
+        form.instance.post = get_object_or_404(Post, pk=self.kwargs['pk'])
         messages.success(self.request, 'Your comment has been added successfully!')
         return super().form_valid(form)
     
     def get_success_url(self):
         """Redirect to the post detail page after creating comment"""
-        return reverse_lazy('blog:post_detail', kwargs={'pk': self.kwargs['post_pk']})
+        return reverse_lazy('blog:post_detail', kwargs={'pk': self.kwargs['pk']})
     
     def get_context_data(self, **kwargs):
         """Add the post to context"""
         context = super().get_context_data(**kwargs)
-        context['post'] = get_object_or_404(Post, pk=self.kwargs['post_pk'])
+        context['post'] = get_object_or_404(Post, pk=self.kwargs['pk'])
         return context
 
 
