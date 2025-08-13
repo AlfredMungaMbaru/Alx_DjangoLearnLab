@@ -31,50 +31,86 @@ DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # ============================================================================
-# SECURITY SETTINGS - Django Security Best Practices
+# HTTPS AND SECURITY SETTINGS - Django Security Best Practices
 # ============================================================================
 
-# Browser security settings
-# XSS protection - enables browser's built-in XSS filtering
-SECURE_BROWSER_XSS_FILTER = True
+# HTTPS Configuration - Step 1: Configure Django for HTTPS Support
+# ============================================================================
 
-# Prevents the browser from guessing content types
-SECURE_CONTENT_TYPE_NOSNIFF = True
+# Force HTTPS redirects - redirects all HTTP requests to HTTPS
+# SECURE_SSL_REDIRECT: When True, Django will redirect all non-HTTPS requests to HTTPS
+# This is essential for production environments to ensure all traffic is encrypted
+SECURE_SSL_REDIRECT = not DEBUG  # True in production, False in development
 
-# Prevents site from being embedded in frames (clickjacking protection)
-X_FRAME_OPTIONS = 'DENY'
+# HSTS (HTTP Strict Transport Security) Configuration
+# SECURE_HSTS_SECONDS: Tells browsers to only access the site via HTTPS for specified time
+# Setting to 31536000 (1 year) instructs browsers to remember this for a full year
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0  # 1 year in production, disabled in dev
 
-# Cookie Security Settings
-# CSRF cookie should only be sent over HTTPS in production
-CSRF_COOKIE_SECURE = not DEBUG  # True in production, False in development
+# SECURE_HSTS_INCLUDE_SUBDOMAINS: Applies HSTS policy to all subdomains
+# This ensures that subdomains are also protected by HSTS
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 
-# Session cookie should only be sent over HTTPS in production  
+# SECURE_HSTS_PRELOAD: Allows the domain to be included in HSTS preload lists
+# This provides protection even on first visit to the site
+SECURE_HSTS_PRELOAD = not DEBUG
+
+# SSL Proxy Configuration for deployment behind reverse proxy (like nginx)
+# SECURE_PROXY_SSL_HEADER: Tells Django how to detect HTTPS when behind a proxy
+# This is crucial for applications deployed behind load balancers or reverse proxies
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Step 2: Enforce Secure Cookies
+# ============================================================================
+
+# Session Cookie Security - ensures session cookies are only sent over HTTPS
+# SESSION_COOKIE_SECURE: When True, session cookies will only be sent over HTTPS
+# This prevents session hijacking over insecure connections
 SESSION_COOKIE_SECURE = not DEBUG  # True in production, False in development
 
-# Prevent client-side JavaScript from accessing CSRF cookie
-CSRF_COOKIE_HTTPONLY = True
+# CSRF Cookie Security - ensures CSRF tokens are only sent over HTTPS
+# CSRF_COOKIE_SECURE: When True, CSRF cookies will only be sent over HTTPS
+# This prevents CSRF token interception over insecure connections
+CSRF_COOKIE_SECURE = not DEBUG  # True in production, False in development
 
-# Prevent client-side JavaScript from accessing session cookie
-SESSION_COOKIE_HTTPONLY = True
+# Additional Cookie Security Settings
+# Prevent client-side JavaScript from accessing security-critical cookies
+CSRF_COOKIE_HTTPONLY = True  # Prevents XSS attacks from stealing CSRF tokens
+SESSION_COOKIE_HTTPONLY = True  # Prevents XSS attacks from stealing session IDs
 
-# Use secure settings for session cookies
+# SameSite cookie protection - prevents CSRF attacks
+# 'Strict' provides the strongest protection against CSRF
 SESSION_COOKIE_SAMESITE = 'Strict'
 CSRF_COOKIE_SAMESITE = 'Strict'
 
-# Session security
-SESSION_COOKIE_AGE = 3600  # 1 hour session timeout
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# Session timeout and expiration settings
+SESSION_COOKIE_AGE = 3600  # 1 hour session timeout for security
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Clear session when browser closes
 
-# Force HTTPS redirects in production
-SECURE_SSL_REDIRECT = not DEBUG  # True in production
+# Step 3: Implement Secure Headers
+# ============================================================================
 
-# HSTS (HTTP Strict Transport Security) settings for production
-SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0  # 1 year in production
-SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
-SECURE_HSTS_PRELOAD = not DEBUG
+# Browser Security Headers - protect against various types of attacks
 
-# Additional security headers
+# X_FRAME_OPTIONS: Prevents clickjacking attacks by controlling iframe embedding
+# 'DENY' completely prevents the page from being embedded in any frame
+X_FRAME_OPTIONS = 'DENY'
+
+# SECURE_CONTENT_TYPE_NOSNIFF: Prevents MIME-sniffing attacks
+# Prevents browsers from interpreting files as different MIME types
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# SECURE_BROWSER_XSS_FILTER: Enables browser's built-in XSS filtering
+# Helps prevent cross-site scripting attacks by enabling browser protection
+SECURE_BROWSER_XSS_FILTER = True
+
+# Referrer Policy - controls how much referrer information is sent with requests
+# 'strict-origin-when-cross-origin' provides good balance of security and functionality
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Additional Security Headers (can be set in middleware or web server)
+# These can also be configured at the web server level (nginx/apache)
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
 
 
 # Application definition
