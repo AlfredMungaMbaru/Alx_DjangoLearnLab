@@ -1,0 +1,52 @@
+{% extends 'bookshelf/base.html' %}
+
+{% block title %}{{ title }} - Bookshelf{% endblock %}
+
+{% block content %}
+<h1>{{ title|default:"Book Form" }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div style="margin-bottom: 15px;">
+        {{ form.title.label_tag }}
+        {{ form.title }}
+        {% if form.title.errors %}
+            <div style="color: red;">{{ form.title.errors }}</div>
+        {% endif %}
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        {{ form.author.label_tag }}
+        {{ form.author }}
+        {% if form.author.errors %}
+            <div style="color: red;">{{ form.author.errors }}</div>
+        {% endif %}
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        {{ form.isbn.label_tag }}
+        {{ form.isbn }}
+        {% if form.isbn.errors %}
+            <div style="color: red;">{{ form.isbn.errors }}</div>
+        {% endif %}
+        {% if form.isbn.help_text %}
+            <small>{{ form.isbn.help_text }}</small>
+        {% endif %}
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        {{ form.publication_date.label_tag }}
+        {{ form.publication_date }}
+        {% if form.publication_date.errors %}
+            <div style="color: red;">{{ form.publication_date.errors }}</div>
+        {% endif %}
+        {% if form.publication_date.help_text %}
+            <small>{{ form.publication_date.help_text }}</small>
+        {% endif %}
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Save Book</button>
+    <a href="{% url 'book_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

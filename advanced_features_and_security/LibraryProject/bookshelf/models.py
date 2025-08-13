@@ -122,6 +122,12 @@ class Book(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Book'
         verbose_name_plural = 'Books'
+        permissions = [
+            ('can_view', 'Can view book'),
+            ('can_create', 'Can create book'),
+            ('can_edit', 'Can edit book'),
+            ('can_delete', 'Can delete book'),
+        ]
     
     def __str__(self):
         return f"{self.title} by {self.author}"

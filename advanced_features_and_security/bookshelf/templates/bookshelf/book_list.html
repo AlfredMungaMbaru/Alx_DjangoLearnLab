@@ -1,0 +1,50 @@
+{% extends 'bookshelf/base.html' %}
+
+{% block title %}Book List - Bookshelf{% endblock %}
+
+{% block content %}
+<h1>Book Library</h1>
+
+<p>Welcome to the book management system. Your permissions:</p>
+<ul>
+    <li>View books: {% if perms.bookshelf.can_view %}<span style="color: green;">✓ Allowed</span>{% else %}<span style="color: red;">✗ Denied</span>{% endif %}</li>
+    <li>Create books: {% if perms.bookshelf.can_create %}<span style="color: green;">✓ Allowed</span>{% else %}<span style="color: red;">✗ Denied</span>{% endif %}</li>
+    <li>Edit books: {% if perms.bookshelf.can_edit %}<span style="color: green;">✓ Allowed</span>{% else %}<span style="color: red;">✗ Denied</span>{% endif %}</li>
+    <li>Delete books: {% if perms.bookshelf.can_delete %}<span style="color: green;">✓ Allowed</span>{% else %}<span style="color: red;">✗ Denied</span>{% endif %}</li>
+</ul>
+
+{% if books %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Owner</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <tr>
+                <td>{{ book.title }}</td>
+                <td>{{ book.author }}</td>
+                <td>{{ book.owner.username }}</td>
+                <td>{{ book.created_at|date:"M d, Y" }}</td>
+                <td>
+                    <a href="{% url 'book_detail' book.pk %}" class="btn btn-primary">View</a>
+                    {% if perms.bookshelf.can_edit %}
+                        <a href="{% url 'book_edit' book.pk %}" class="btn btn-secondary">Edit</a>
+                    {% endif %}
+                    {% if perms.bookshelf.can_delete %}
+                        <a href="{% url 'book_delete' book.pk %}" class="btn btn-danger">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No books found. {% if perms.bookshelf.can_create %}<a href="{% url 'book_create' %}">Add the first book!</a>{% endif %}</p>
+{% endif %}
+{% endblock %}
