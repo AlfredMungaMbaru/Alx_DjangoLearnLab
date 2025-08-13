@@ -1,0 +1,158 @@
+{% extends 'bookshelf/base.html' %}
+
+{% block title %}Form Example - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Example Form - Security Best Practices</h3>
+                    <p class="mb-0 text-muted">This form demonstrates secure form handling with CSRF protection, input validation, and XSS prevention.</p>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                {{ form.name.label }}
+                                {% if form.name.field.required %}
+                                    <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                            {% if form.name.help_text %}
+                                <div class="form-text">{{ form.name.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                {{ form.email.label }}
+                                {% if form.email.field.required %}
+                                    <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.email.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                            {% if form.email.help_text %}
+                                <div class="form-text">{{ form.email.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ form.message.id_for_label }}" class="form-label">
+                                {{ form.message.label }}
+                                {% if form.message.field.required %}
+                                    <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.message.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                            {% if form.message.help_text %}
+                                <div class="form-text">{{ form.message.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Submit Form
+                            </button>
+                            <a href="{% url 'bookshelf:book_list' %}" class="btn btn-secondary ms-2">
+                                <i class="fas fa-arrow-left"></i> Back to Books
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Security Features Information -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Security Features Demonstrated</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-shield-alt text-success"></i> <strong>CSRF Protection:</strong> Form includes {% raw %}{% csrf_token %}{% endraw %} to prevent cross-site request forgery</li>
+                        <li><i class="fas fa-filter text-info"></i> <strong>Input Validation:</strong> Server-side validation with custom clean methods</li>
+                        <li><i class="fas fa-code text-warning"></i> <strong>XSS Prevention:</strong> Input sanitization removes dangerous HTML/JavaScript</li>
+                        <li><i class="fas fa-exclamation-triangle text-danger"></i> <strong>Error Handling:</strong> Secure error messages without exposing sensitive information</li>
+                        <li><i class="fas fa-lock text-primary"></i> <strong>Data Sanitization:</strong> Content is cleaned before processing</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <strong>Try testing the security features:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Try entering script tags like <code>&lt;script&gt;alert('test')&lt;/script&gt;</code> - they will be sanitized</li>
+                            <li>Submit without required fields to see validation errors</li>
+                            <li>Enter invalid email formats to test email validation</li>
+                            <li>Try very short inputs to test length validation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Additional styling for form validation */
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.form-control.is-valid {
+    border-color: #28a745;
+}
+
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.list-unstyled li {
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.list-unstyled li i {
+    margin-right: 0.5rem;
+    width: 1.2em;
+}
+</style>
+{% endblock %}
