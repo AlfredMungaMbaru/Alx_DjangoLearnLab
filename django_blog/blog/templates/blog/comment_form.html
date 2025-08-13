@@ -1,0 +1,113 @@
+{% extends "blog/base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if is_edit %}
+        Edit Comment
+    {% else %}
+        Add Comment
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Post Context -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-comment-alt me-2"></i>
+                        {% if is_edit %}
+                            Edit Comment on: {{ post.title }}
+                        {% else %}
+                            Add Comment to: {{ post.title }}
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-0">
+                        By {{ post.author.username }} • {{ post.created_at|date:"F d, Y" }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Comment Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        {% if is_edit %}
+                            <i class="fas fa-edit me-2"></i>Edit Your Comment
+                        {% else %}
+                            <i class="fas fa-plus me-2"></i>Share Your Thoughts
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Comment Content Field -->
+                        <div class="mb-3">
+                            {{ form.content.label_tag }}
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.content.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Share your thoughts respectfully. Minimum 5 characters required.
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if is_edit %}
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Update Comment
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-comment me-2"></i>Post Comment
+                                    </button>
+                                {% endif %}
+                                <a href="{% url 'blog:post_detail' post.pk %}" class="btn btn-secondary ms-2">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                            
+                            <div class="text-muted">
+                                <small>
+                                    <i class="fas fa-user me-1"></i>
+                                    Posting as: {{ user.username }}
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Guidelines -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>
+                        Comment Guidelines
+                    </h6>
+                    <ul class="mb-0 small text-muted">
+                        <li>Be respectful and constructive in your comments</li>
+                        <li>Stay on topic and relevant to the post</li>
+                        <li>You can edit or delete your own comments later</li>
+                        <li>Comments are displayed in chronological order</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

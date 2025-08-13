@@ -50,12 +50,125 @@
                     
                     {% if not user.is_authenticated %}
                         <div>
-                            <a href="{% url 'blog:login' %}" class="btn btn-outline-primary btn-sm">Login to Write</a>
+                            <a href="{% url 'blog:login' %}" class="btn btn-outline-primary btn-sm">Login to Comment</a>
                         </div>
                     {% endif %}
                 </div>
             </footer>
         </article>
+
+        <!-- Comments Section -->
+        <section class="comments-section mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>
+                    <i class="fas fa-comments me-2"></i>
+                    Comments ({{ comments.count }})
+                </h3>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'blog:comment_create' post.pk %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus me-2"></i>Add Comment
+                    </a>
+                {% endif %}
+            </div>
+
+            {% if comments %}
+                <!-- Comments List -->
+                <div class="comments-list">
+                    {% for comment in comments %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 user-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ comment.author.username }}</h6>
+                                            <small class="text-muted">
+                                                {{ comment.created_at|date:"F d, Y \a\t g:i A" }}
+                                                {% if comment.updated_at != comment.created_at %}
+                                                    <span class="ms-2">
+                                                        <i class="fas fa-edit me-1"></i>
+                                                        Edited {{ comment.updated_at|date:"M d, Y" }}
+                                                    </span>
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if user == comment.author %}
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Comment options">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="{% url 'blog:comment_update' comment.pk %}">
+                                                    <i class="fas fa-edit me-2"></i>Edit
+                                                </a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="{% url 'blog:comment_delete' comment.pk %}">
+                                                    <i class="fas fa-trash me-2"></i>Delete
+                                                </a></li>
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="comment-content">
+                                    {{ comment.content|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- No Comments Message -->
+                <div class="text-center py-5">
+                    <div class="text-muted">
+                        <i class="fas fa-comment-slash fa-3x mb-3"></i>
+                        <h5>No comments yet</h5>
+                        <p>Be the first to share your thoughts on this post!</p>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'blog:comment_create' post.pk %}" class="btn btn-primary mt-2">
+                                <i class="fas fa-comment me-2"></i>Add First Comment
+                            </a>
+                        {% else %}
+                            <a href="{% url 'blog:login' %}" class="btn btn-outline-primary mt-2">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login to Comment
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Quick Comment Form for Authenticated Users -->
+            {% if user.is_authenticated and comment_form %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-plus me-2"></i>Quick Comment
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{% url 'blog:comment_create' post.pk %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                {{ comment_form.content }}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fas fa-comment me-2"></i>Post Comment
+                                </button>
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>
+                                    Commenting as: {{ user.username }}
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
     </div>
     
     <div class="col-md-4">
@@ -79,6 +192,7 @@
             <div class="card-body">
                 <p><strong>Published:</strong> {{ post.published_date|date:"F d, Y \a\t g:i A" }}</p>
                 <p><strong>Author:</strong> {{ post.author.username }}</p>
+                <p><strong>Comments:</strong> {{ comments.count }}</p>
                 <p><strong>Word count:</strong> {{ post.content|wordcount }}</p>
                 <p><strong>Reading time:</strong> ~{{ post.content|wordcount|floatformat:0|add:"200"|div:200 }} min</p>
             </div>
@@ -97,6 +211,7 @@
                         </div>
                     {% else %}
                         <div class="d-grid gap-2">
+                            <a href="{% url 'blog:comment_create' post.pk %}" class="btn btn-success btn-sm">Add Comment</a>
                             <a href="{% url 'blog:post_create' %}" class="btn btn-primary btn-sm">Write Your Own Post</a>
                             <a href="{% url 'blog:profile' %}" class="btn btn-outline-primary btn-sm">View Your Posts</a>
                         </div>
@@ -104,6 +219,21 @@
                 </div>
             </div>
         {% endif %}
+
+        <!-- Comment Guidelines -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6>Comment Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small text-muted mb-0">
+                    <li>Be respectful and constructive</li>
+                    <li>Stay on topic</li>
+                    <li>You can edit/delete your comments</li>
+                    <li>Login required to comment</li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
