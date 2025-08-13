@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,9 +24,57 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-w8*t)1066h+1m&33qk1nj&ovy0klfr_53%q@w&laqiz$ihs=%a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Set to False in production for security
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+# Allowed hosts - specify your domain in production
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# ============================================================================
+# SECURITY SETTINGS - Django Security Best Practices
+# ============================================================================
+
+# Browser security settings
+# XSS protection - enables browser's built-in XSS filtering
+SECURE_BROWSER_XSS_FILTER = True
+
+# Prevents the browser from guessing content types
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Prevents site from being embedded in frames (clickjacking protection)
+X_FRAME_OPTIONS = 'DENY'
+
+# Cookie Security Settings
+# CSRF cookie should only be sent over HTTPS in production
+CSRF_COOKIE_SECURE = not DEBUG  # True in production, False in development
+
+# Session cookie should only be sent over HTTPS in production  
+SESSION_COOKIE_SECURE = not DEBUG  # True in production, False in development
+
+# Prevent client-side JavaScript from accessing CSRF cookie
+CSRF_COOKIE_HTTPONLY = True
+
+# Prevent client-side JavaScript from accessing session cookie
+SESSION_COOKIE_HTTPONLY = True
+
+# Use secure settings for session cookies
+SESSION_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_SAMESITE = 'Strict'
+
+# Session security
+SESSION_COOKIE_AGE = 3600  # 1 hour session timeout
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Force HTTPS redirects in production
+SECURE_SSL_REDIRECT = not DEBUG  # True in production
+
+# HSTS (HTTP Strict Transport Security) settings for production
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0  # 1 year in production
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+
+# Additional security headers
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 
 # Application definition
@@ -37,11 +86,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'csp',  # Content Security Policy middleware
     'bookshelf',  # App containing custom user model
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'csp.middleware.CSPMiddleware',  # Content Security Policy
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -81,24 +132,7 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
+# Password validation will be configured in the security section below
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -129,3 +163,147 @@ AUTH_USER_MODEL = 'bookshelf.CustomUser'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ============================================================================
+# CONTENT SECURITY POLICY (CSP) SETTINGS
+# ============================================================================
+
+# CSP settings to prevent XSS attacks
+# These settings control what resources can be loaded and executed
+
+# Default source for all content
+CSP_DEFAULT_SRC = ("'self'",)
+
+# Script sources (JavaScript)
+CSP_SCRIPT_SRC = (
+    "'self'",
+    "'unsafe-inline'",  # Allow inline scripts (be cautious with this)
+    "https://cdn.jsdelivr.net",  # Allow scripts from CDN
+)
+
+# Style sources (CSS)
+CSP_STYLE_SRC = (
+    "'self'",
+    "'unsafe-inline'",  # Allow inline styles for development
+    "https://fonts.googleapis.com",
+    "https://cdn.jsdelivr.net",
+)
+
+# Image sources
+CSP_IMG_SRC = (
+    "'self'",
+    "data:",  # Allow data URIs for images
+    "https:",  # Allow HTTPS images
+)
+
+# Font sources
+CSP_FONT_SRC = (
+    "'self'",
+    "https://fonts.gstatic.com",
+)
+
+# Connect sources (AJAX, WebSocket, etc.)
+CSP_CONNECT_SRC = ("'self'",)
+
+# Frame sources (for embedding content)
+CSP_FRAME_SRC = ("'none'",)  # Don't allow any frames
+
+# Object sources (for plugins like Flash)
+CSP_OBJECT_SRC = ("'none'",)  # Don't allow any plugins
+
+# Media sources (audio/video)
+CSP_MEDIA_SRC = ("'self'",)
+
+# Report CSP violations (optional - for monitoring)
+# CSP_REPORT_URI = '/csp-report/'
+
+# ============================================================================
+# LOGGING CONFIGURATION
+# ============================================================================
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'django.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'bookshelf': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+# ============================================================================
+# ADDITIONAL SECURITY SETTINGS
+# ============================================================================
+
+# Password validation - strengthen password requirements
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 12,  # Increased minimum length
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# Security-related settings for production
+if not DEBUG:
+    # Additional production security settings
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_TZ = True
+    
+    # Database connection security
+    DATABASES['default']['OPTIONS'] = {
+        'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+    }
+
+# File upload security
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+FILE_UPLOAD_PERMISSIONS = 0o644
+
+# Email security settings (if using email)
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
+# Cache security (if using cache)
+CACHE_MIDDLEWARE_SECONDS = 600
+CACHE_MIDDLEWARE_KEY_PREFIX = 'bookshelf'

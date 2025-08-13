@@ -1,0 +1,135 @@
+{% extends 'bookshelf/base.html' %}
+
+{% block title %}Security Test - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Security Features Test</h2>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>CSRF Protection Test</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="csrf-test-form">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label for="test-input">Test Input:</label>
+                            <input type="text" class="form-control" id="test-input" name="test_input" 
+                                   placeholder="Enter test data">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Test CSRF</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>XSS Protection Test</h5>
+                </div>
+                <div class="card-body">
+                    <p>Try entering script tags in the form fields - they should be escaped:</p>
+                    <form method="get">
+                        <div class="form-group mb-3">
+                            <label for="xss-test">XSS Test Input:</label>
+                            <input type="text" class="form-control" id="xss-test" name="xss_test" 
+                                   value="{{ request.GET.xss_test|escape }}">
+                        </div>
+                        <button type="submit" class="btn btn-warning">Test XSS</button>
+                    </form>
+                    {% if request.GET.xss_test %}
+                        <div class="mt-3">
+                            <strong>Escaped Output:</strong> {{ request.GET.xss_test|escape }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Security Headers Check</h5>
+                </div>
+                <div class="card-body">
+                    <p>This page includes the following security headers:</p>
+                    <ul>
+                        <li><code>X-Content-Type-Options: nosniff</code></li>
+                        <li><code>X-Frame-Options: DENY</code></li>
+                        <li><code>X-XSS-Protection: 1; mode=block</code></li>
+                        <li><code>Content-Security-Policy</code> (configured in settings)</li>
+                        <li><code>Referrer-Policy: strict-origin-when-cross-origin</code></li>
+                    </ul>
+                    <p>Check browser dev tools (Network tab) to verify these headers are present.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>API Security Test</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label for="api-search">Search Books via API:</label>
+                        <input type="text" class="form-control" id="api-search" placeholder="Enter search term">
+                        <small class="form-text text-muted">This will use the secure API endpoint</small>
+                    </div>
+                    <button type="button" class="btn btn-info" onclick="testAPI()">Test API</button>
+                    <div id="api-results" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Secure API test function
+function testAPI() {
+    const query = document.getElementById('api-search').value;
+    const resultsDiv = document.getElementById('api-results');
+    
+    if (!query) {
+        resultsDiv.innerHTML = '<div class="alert alert-warning">Please enter a search term</div>';
+        return;
+    }
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/bookshelf/api/search/?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+        } else {
+            let html = `<div class="alert alert-success">Found ${data.count} books:</div><ul>`;
+            data.books.forEach(book => {
+                html += `<li>${book.title} by ${book.author}</li>`;
+            });
+            html += '</ul>';
+            resultsDiv.innerHTML = html;
+        }
+    })
+    .catch(error => {
+        resultsDiv.innerHTML = `<div class="alert alert-danger">Network error: ${error}</div>`;
+    });
+}
+</script>
+{% endblock %}
