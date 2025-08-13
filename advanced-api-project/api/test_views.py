@@ -193,7 +193,7 @@ class BookAPITestCase(APITestCase):
             'author': self.author1.id
         }
         
-        url = reverse('book-detail', kwargs={'pk': book.pk})
+        url = reverse('api:book-update', kwargs={'pk': book.pk})
         response = self.client.put(url, data, format='json')
         # DRF returns 403 Forbidden for permission denied scenarios
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
