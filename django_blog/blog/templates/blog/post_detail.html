@@ -1,0 +1,49 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}{{ post.title }} - Django Blog{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <article class="blog-post">
+            <header class="mb-4">
+                <h1 class="display-5">{{ post.title }}</h1>
+                <p class="text-muted">
+                    By <strong>{{ post.author.username }}</strong> on {{ post.published_date|date:"F d, Y" }}
+                </p>
+            </header>
+            
+            <div class="blog-content">
+                {{ post.content|linebreaks }}
+            </div>
+            
+            <footer class="mt-4 pt-3 border-top">
+                <a href="{% url 'blog:post_list' %}" class="btn btn-secondary">← Back to Posts</a>
+            </footer>
+        </article>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>About the Author</h5>
+            </div>
+            <div class="card-body">
+                <h6>{{ post.author.get_full_name|default:post.author.username }}</h6>
+                <p class="text-muted">Blog contributor</p>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Post Details</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Published:</strong> {{ post.published_date|date:"F d, Y \a\t g:i A" }}</p>
+                <p><strong>Author:</strong> {{ post.author.username }}</p>
+                <p><strong>Word count:</strong> {{ post.content|wordcount }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
