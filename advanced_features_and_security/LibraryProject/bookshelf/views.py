@@ -10,6 +10,7 @@ from django.db.models import Q
 import logging
 from .models import Book
 from .forms import BookForm, ExampleForm
+from .forms import ExampleForm
 
 # Set up logging for security events
 logger = logging.getLogger(__name__)
