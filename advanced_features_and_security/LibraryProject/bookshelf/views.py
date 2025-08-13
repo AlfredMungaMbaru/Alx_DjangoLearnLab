@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 import logging
 from .models import Book
-from .forms import BookForm
+from .forms import BookForm, ExampleForm
 
 # Set up logging for security events
 logger = logging.getLogger(__name__)
