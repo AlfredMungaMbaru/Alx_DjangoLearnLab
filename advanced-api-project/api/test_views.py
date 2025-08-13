@@ -125,7 +125,7 @@ class BookAPITestCase(APITestCase):
     
     def test_book_create_authenticated_success(self):
         """Test that authenticated users can create books."""
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         book_data = {
             'title': 'New Book',
             'publication_year': 2023,
@@ -142,7 +142,7 @@ class BookAPITestCase(APITestCase):
     
     def test_book_create_future_year_validation(self):
         """Test that books with future publication years are rejected."""
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         future_year = datetime.now().year + 1
         book_data = {
             'title': 'Future Book',
@@ -155,7 +155,7 @@ class BookAPITestCase(APITestCase):
     
     def test_book_update_authenticated_success(self):
         """Test that authenticated users can update books."""
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         update_data = {
             'title': 'Updated Title',
             'publication_year': 1998,
@@ -171,7 +171,7 @@ class BookAPITestCase(APITestCase):
     
     def test_book_partial_update_authenticated(self):
         """Test partial update (PATCH) of books."""
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         update_data = {'title': 'Partially Updated Title'}
         response = self.client.patch(self.book_update_url, update_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -200,7 +200,7 @@ class BookAPITestCase(APITestCase):
     
     def test_book_delete_authenticated_success(self):
         """Test that authenticated users can delete books."""
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         book_id = self.book1.pk
         response = self.client.delete(self.book_delete_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -400,7 +400,7 @@ class AuthorAPITestCase(APITestCase):
     
     def test_author_create_authenticated(self):
         """Test creating authors with authentication."""
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         author_data = {'name': 'New Author'}
         response = self.client.post(self.author_create_url, author_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -468,7 +468,7 @@ class ErrorHandlingTestCase(APITestCase):
     
     def test_invalid_book_data(self):
         """Test creating book with invalid data."""
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         
         # Missing required fields
         response = self.client.post(self.books_create_url, {})
