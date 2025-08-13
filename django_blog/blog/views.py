@@ -7,8 +7,10 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.db.models import Q
+from taggit.models import Tag
 from .models import Post, Comment
-from .forms import CustomUserCreationForm, UserUpdateForm, PostForm, CommentForm
+from .forms import CustomUserCreationForm, UserUpdateForm, PostForm, CommentForm, SearchForm
 
 # Create your views here.
 
@@ -61,6 +63,9 @@ class PostListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_obj'] = context['page_obj']
+        context['search_form'] = SearchForm()
+        # Add popular tags (tags with most posts)
+        context['popular_tags'] = Tag.objects.filter(taggit_taggeditem_items__isnull=False).distinct()[:10]
         return context
 
 class PostDetailView(DetailView):
@@ -210,3 +215,58 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         """Ensure only the comment author can delete the comment"""
         comment = self.get_object()
         return self.request.user == comment.author
+
+
+# Search and Tag Views
+def search_posts(request):
+    """Search posts by title, content, or tags"""
+    form = SearchForm()
+    query = None
+    results = []
+    
+    if 'query' in request.GET:
+        form = SearchForm(request.GET)
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            # Search in title, content, and tags
+            results = Post.objects.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query) |
+                Q(tags__name__icontains=query)
+            ).distinct()
+    
+    return render(request, 'blog/search_results.html', {
+        'form': form,
+        'query': query,
+        'results': results
+    })
+
+
+class PostsByTagView(ListView):
+    """Display posts filtered by a specific tag"""
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 5
+    
+    def get_queryset(self):
+        """Filter posts by tag name"""
+        self.tag = get_object_or_404(Tag, name=self.kwargs['tag_name'])
+        return Post.objects.filter(tags=self.tag)
+    
+    def get_context_data(self, **kwargs):
+        """Add tag to context"""
+        context = super().get_context_data(**kwargs)
+        context['tag'] = self.tag
+        return context
+
+
+class TagListView(ListView):
+    """Display all available tags"""
+    model = Tag
+    template_name = 'blog/tag_list.html'
+    context_object_name = 'tags'
+    
+    def get_queryset(self):
+        """Get tags that have at least one post"""
+        return Tag.objects.filter(taggit_taggeditem_items__isnull=False).distinct().order_by('name')

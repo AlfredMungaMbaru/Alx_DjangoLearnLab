@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Post, Comment
+from .models import Post, Comment, Tag
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -85,11 +85,11 @@ class UserUpdateForm(forms.ModelForm):
 
 
 class PostForm(forms.ModelForm):
-    """Form for creating and updating blog posts"""
+    """Form for creating and updating blog posts with django-taggit integration"""
     
     class Meta:
         model = Post
-        fields = ['title', 'content']
+        fields = ['title', 'content', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -101,17 +101,51 @@ class PostForm(forms.ModelForm):
                 'placeholder': 'Write your post content here...',
                 'rows': 15,
                 'style': 'resize: vertical;'
+            }),
+            'tags': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter tags separated by commas (e.g., django, python, web)',
+                'data-bs-toggle': 'tooltip',
+                'data-bs-placement': 'top',
+                'title': 'Enter tags separated by commas'
             })
         }
         help_texts = {
             'title': 'Maximum 200 characters.',
-            'content': 'Write your blog post content. You can use line breaks for paragraphs.'
+            'content': 'Write your blog post content. You can use line breaks for paragraphs.',
+            'tags': 'Enter tags separated by commas. Tags help categorize your post.'
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['title'].help_text = 'Maximum 200 characters.'
         self.fields['content'].help_text = 'Write your blog post content. You can use line breaks for paragraphs.'
+        self.fields['tags'].help_text = 'Enter tags separated by commas. Tags help categorize your post.'
+        
+        # Pre-populate tags field if editing existing post
+        if self.instance and self.instance.pk:
+            tags = self.instance.tags.all()
+            if tags:
+                self.fields['tags_input'].initial = ', '.join([tag.name for tag in tags])
+
+    def save(self, commit=True):
+        """Save the post and handle tags"""
+        post = super().save(commit=commit)
+        
+        if commit:
+            # Clear existing tags
+            post.tags.clear()
+            
+            # Process new tags
+            tags_input = self.cleaned_data.get('tags_input', '')
+            if tags_input:
+                tag_names = [name.strip().lower() for name in tags_input.split(',') if name.strip()]
+                for tag_name in tag_names:
+                    if tag_name:  # Only process non-empty tags
+                        tag, created = Tag.objects.get_or_create(name=tag_name)
+                        post.tags.add(tag)
+        
+        return post
 
     def clean_title(self):
         """Validate the title field"""
@@ -164,3 +198,25 @@ class CommentForm(forms.ModelForm):
         if len(content.strip()) < 5:
             raise forms.ValidationError('Comment must be at least 5 characters long.')
         return content.strip()
+
+
+class SearchForm(forms.Form):
+    """Form for searching blog posts"""
+    query = forms.CharField(
+        max_length=255,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search posts by title, content, or tags...',
+            'aria-label': 'Search'
+        }),
+        help_text='Search for posts by title, content, or tags'
+    )
+
+    def clean_query(self):
+        """Validate and clean the search query"""
+        query = self.cleaned_data.get('query')
+        if query:
+            query = query.strip()
+            if len(query) < 2:
+                raise forms.ValidationError('Search query must be at least 2 characters long.')
+        return query

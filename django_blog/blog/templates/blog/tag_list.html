@@ -1,0 +1,118 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}All Tags - Django Blog{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-tags me-2"></i>All Tags</h2>
+                    <p class="text-muted">Browse posts by category</p>
+                </div>
+                <div>
+                    <a href="{% url 'blog:posts' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-list me-1"></i>All Posts
+                    </a>
+                    <a href="{% url 'blog:search' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-search me-1"></i>Search
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            {% if tags %}
+                <div class="row">
+                    {% for tag in tags %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a href="{% url 'blog:posts_by_tag' tag.name %}" 
+                                           class="text-decoration-none">
+                                            <i class="fas fa-tag me-2"></i>{{ tag.name }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text text-muted">
+                                        <small>
+                                            {{ tag.posts.count }} post{{ tag.posts.count|pluralize }}
+                                            <i class="fas fa-calendar ms-2 me-1"></i>
+                                            Created {{ tag.created_at|date:"M d, Y" }}
+                                        </small>
+                                    </p>
+                                    <a href="{% url 'blog:posts_by_tag' tag.name %}" 
+                                       class="btn btn-primary btn-sm">
+                                        View Posts <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No tags found</h4>
+                    <p class="text-muted">No tags have been created yet. Tags will appear here when posts are tagged.</p>
+                    <a href="{% url 'blog:posts' %}" class="btn btn-primary">
+                        <i class="fas fa-list me-1"></i>View All Posts
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle me-2"></i>About Tags</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Tags help categorize blog posts and make them easier to find. 
+                        Click on any tag to see all posts with that tag.
+                    </p>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i>Browse by category</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Find related posts</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Discover new topics</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-chart-bar me-2"></i>Tag Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-6">Total Tags:</dt>
+                        <dd class="col-sm-6">{{ tags|length }}</dd>{% if tags %}
+                        <dt class="col-sm-6">Most Posts:</dt>
+                        <dd class="col-sm-6">{% with tags|first as top_tag %}{{ top_tag.posts.count }}{% endwith %}</dd>{% endif %}
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-search me-2"></i>Search Posts</h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'blog:search' %}">
+                        <div class="input-group">
+                            <input type="text" name="query" class="form-control form-control-sm" 
+                                   placeholder="Search posts...">
+                            <button class="btn btn-primary btn-sm" type="submit" title="Search">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

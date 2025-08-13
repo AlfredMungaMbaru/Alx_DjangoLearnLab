@@ -17,31 +17,52 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'blog:post_list' %}">Home</a>
                     </li>
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'blog:profile' %}">Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Welcome, {{ user.username }}</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'blog:logout' %}">Logout</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'blog:login' %}">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'blog:register' %}">Register</a>
-                        </li>
-                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'blog:tag_list' %}">Tags</a>
+                    </li>
+                </ul>
+                
+                <!-- Search Form -->
+                <form class="d-flex me-3" method="get" action="{% url 'blog:search' %}">
+                    <input class="form-control form-control-sm me-2 search-input" type="search" name="query" 
+                           placeholder="Search posts..." aria-label="Search">
+                    <button class="btn btn-outline-light btn-sm" type="submit" title="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+                
+                <ul class="navbar-nav">{% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user me-1"></i>{{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'blog:profile' %}">
+                                <i class="fas fa-user me-2"></i>Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'blog:post_create' %}">
+                                <i class="fas fa-plus me-2"></i>New Post
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                <i class="fas fa-cog me-2"></i>Admin
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'blog:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>{% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'blog:login' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'blog:register' %}">Register</a>
+                    </li>{% endif %}
                 </ul>
             </div>
         </div>

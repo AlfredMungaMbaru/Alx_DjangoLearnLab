@@ -209,3 +209,25 @@ footer {
 .comments-list .card:hover {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
+
+/* Search and Tags styles */
+.search-input {
+    width: 200px;
+}
+
+.tag-list .badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0.2rem;
+}
+
+.tag-list .badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+    .search-input {
+        width: 150px;
+    }
+}
