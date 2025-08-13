@@ -54,6 +54,70 @@ footer {
     margin-top: auto;
 }
 
+/* Authentication Forms */
+.auth-card {
+    max-width: 400px;
+    margin: 2rem auto;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.alert {
+    border-radius: 0.5rem;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+/* Profile Page Styles */
+.profile-card {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.profile-info {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.user-posts {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.user-posts::-webkit-scrollbar {
+    width: 6px;
+}
+
+.user-posts::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.user-posts::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .blog-post {
@@ -62,6 +126,11 @@ footer {
     
     .container {
         padding: 0 1rem;
+    }
+    
+    .auth-card {
+        margin: 1rem;
+        max-width: none;
     }
 }
 
@@ -72,6 +141,32 @@ footer {
 
 .card:hover {
     transform: translateY(-2px);
+}
+
+/* Form validation styles */
+.is-invalid {
+    border-color: #dc3545;
+}
+
+.is-valid {
+    border-color: #28a745;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+/* Navigation improvements */
+.navbar-nav .nav-link {
+    transition: color 0.2s ease-in-out;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #007bff !important;
 }
 
 /* Custom scrollbar */

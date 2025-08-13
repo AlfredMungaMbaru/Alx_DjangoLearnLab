@@ -4,12 +4,14 @@ A comprehensive Django blog application built as part of the ALX Django learning
 
 ## Features
 
-- **User Authentication**: Admin interface for managing blog posts
-- **Post Management**: Create, read, update, and delete blog posts
+- **User Authentication**: Complete registration, login, logout, and profile management system
+- **Post Management**: Create, read, update, and delete blog posts through admin interface
+- **User Profiles**: Users can view and edit their profile information and see their posts
 - **Responsive Design**: Mobile-friendly interface using Bootstrap
 - **Pagination**: Efficient handling of multiple blog posts
 - **Admin Interface**: Django admin panel for content management
 - **Static Files**: CSS and JavaScript for enhanced user experience
+- **Security**: CSRF protection, secure password handling, and session management
 
 ## Project Structure
 
@@ -101,6 +103,25 @@ For demonstration purposes, a default superuser has been created:
 **⚠️ Note:** Change these credentials in production environments!
 
 ## Usage
+
+### Authentication System
+
+#### User Registration
+1. Navigate to `/register/` or click "Register" in the navigation
+2. Fill out the registration form with username, email, and password
+3. Optionally provide first and last name
+4. Submit the form to create your account and automatically log in
+
+#### User Login
+1. Navigate to `/login/` or click "Login" in the navigation
+2. Enter your username and password
+3. Submit to log in and access personalized features
+
+#### Profile Management
+1. While logged in, navigate to `/profile/` or click "Profile"
+2. View your account information and statistics
+3. Update your profile details as needed
+4. See a list of all your blog posts
 
 ### Viewing Blog Posts
 - Navigate to the home page to see all published blog posts

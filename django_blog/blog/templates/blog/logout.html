@@ -1,0 +1,20 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Logged Out - Django Blog{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="card-title">You've been logged out</h3>
+                <p class="card-text">Thanks for using Django Blog! You have been successfully logged out.</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'blog:login' %}" class="btn btn-primary">Log in again</a>
+                    <a href="{% url 'blog:post_list' %}" class="btn btn-outline-secondary">Return to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
