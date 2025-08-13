@@ -2,6 +2,66 @@ from django import forms
 from .models import Book
 
 
+class ExampleForm(forms.Form):
+    """
+    Example form demonstrating secure form handling practices.
+    """
+    name = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your name'
+        })
+    )
+    
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your email'
+        })
+    )
+    
+    message = forms.CharField(
+        max_length=500,
+        required=True,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Enter your message'
+        })
+    )
+    
+    def clean_name(self):
+        """
+        Validate and sanitize the name field.
+        """
+        name = self.cleaned_data.get('name')
+        if name:
+            # Remove any potentially dangerous characters
+            import re
+            name = re.sub(r'[<>"\']', '', name)
+            if len(name.strip()) < 2:
+                raise forms.ValidationError('Name must be at least 2 characters long.')
+        return name.strip()
+    
+    def clean_message(self):
+        """
+        Validate and sanitize the message field.
+        """
+        message = self.cleaned_data.get('message')
+        if message:
+            # Basic sanitization
+            import re
+            # Remove script tags and other potentially dangerous HTML
+            message = re.sub(r'<script.*?</script>', '', message, flags=re.IGNORECASE | re.DOTALL)
+            message = re.sub(r'javascript:', '', message, flags=re.IGNORECASE)
+            if len(message.strip()) < 10:
+                raise forms.ValidationError('Message must be at least 10 characters long.')
+        return message.strip()
+
+
 class BookForm(forms.ModelForm):
     """
     Form for creating and editing books.
