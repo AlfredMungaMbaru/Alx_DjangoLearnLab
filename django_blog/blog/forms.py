@@ -122,31 +122,6 @@ class PostForm(forms.ModelForm):
         self.fields['title'].help_text = 'Maximum 200 characters.'
         self.fields['content'].help_text = 'Write your blog post content. You can use line breaks for paragraphs.'
         self.fields['tags'].help_text = 'Enter tags separated by commas. Tags help categorize your post.'
-        
-        # Pre-populate tags field if editing existing post
-        if self.instance and self.instance.pk:
-            tags = self.instance.tags.all()
-            if tags:
-                self.fields['tags_input'].initial = ', '.join([tag.name for tag in tags])
-
-    def save(self, commit=True):
-        """Save the post and handle tags"""
-        post = super().save(commit=commit)
-        
-        if commit:
-            # Clear existing tags
-            post.tags.clear()
-            
-            # Process new tags
-            tags_input = self.cleaned_data.get('tags_input', '')
-            if tags_input:
-                tag_names = [name.strip().lower() for name in tags_input.split(',') if name.strip()]
-                for tag_name in tag_names:
-                    if tag_name:  # Only process non-empty tags
-                        tag, created = Tag.objects.get_or_create(name=tag_name)
-                        post.tags.add(tag)
-        
-        return post
 
     def clean_title(self):
         """Validate the title field"""
