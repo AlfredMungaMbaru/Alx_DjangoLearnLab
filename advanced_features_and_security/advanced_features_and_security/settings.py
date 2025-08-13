@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',  # Our custom accounts app
+    'bookshelf',  # Example app using custom user model
 ]
 
 MIDDLEWARE = [
