@@ -155,7 +155,7 @@ def test_likes_and_notifications():
     
     # User2 unlikes the post
     print("8. User2 unlikes the post...")
-    unlike_response = requests.delete(f"{BASE_URL}/posts/{post_id}/like/", headers=user2_headers)
+    unlike_response = requests.post(f"{BASE_URL}/posts/{post_id}/unlike/", headers=user2_headers)
     if unlike_response.status_code == 200:
         print(f"✓ Post unliked: {unlike_response.json()}")
     else:

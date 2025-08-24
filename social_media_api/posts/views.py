@@ -138,12 +138,26 @@ class LikeUnlikeView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request, pk):
-        """Like a post"""
+        """Handle both like and unlike based on URL path"""
         post = generics.get_object_or_404(Post, pk=pk)
         user = request.user
         
+        # Check if this is an unlike request based on URL path
+        if 'unlike' in request.path:
+            return self._unlike_post(post, user)
+        else:
+            return self._like_post(post, user)
+    
+    def delete(self, request, pk):
+        """Unlike a post (legacy method for backward compatibility)"""
+        post = generics.get_object_or_404(Post, pk=pk)
+        user = request.user
+        return self._unlike_post(post, user)
+    
+    def _like_post(self, post, user):
+        """Like a post"""
         # Check if user already liked this post
-        like, created = Like.objects.get_or_create(user=request.user, post=post)
+        like, created = Like.objects.get_or_create(user=user, post=post)
         
         if created:
             # Create notification for the post author (if not liking own post)
@@ -168,11 +182,8 @@ class LikeUnlikeView(generics.GenericAPIView):
                 'likes_count': post.likes.count()
             }, status=status.HTTP_200_OK)
     
-    def delete(self, request, pk):
+    def _unlike_post(self, post, user):
         """Unlike a post"""
-        post = generics.get_object_or_404(Post, pk=pk)
-        user = request.user
-        
         try:
             like = Like.objects.get(user=user, post=post)
             like.delete()
