@@ -146,41 +146,38 @@ class LikeUnlikeView(generics.GenericAPIView):
         if 'unlike' in request.path:
             return self._unlike_post(post, user)
         else:
-            return self._like_post(post, user)
+            # Like a post
+            # Check if user already liked this post
+            like, created = Like.objects.get_or_create(user=request.user, post=post)
+            
+            if created:
+                # Create notification for the post author (if not liking own post)
+                if post.author != user:
+                    from notifications.models import Notification
+                    Notification.objects.create(
+                        recipient=post.author,
+                        actor=user,
+                        verb='liked your post',
+                        target=post
+                    )
+                
+                return Response({
+                    'message': 'Post liked successfully',
+                    'liked': True,
+                    'likes_count': post.likes.count()
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({
+                    'message': 'You have already liked this post',
+                    'liked': True,
+                    'likes_count': post.likes.count()
+                }, status=status.HTTP_200_OK)
     
     def delete(self, request, pk):
         """Unlike a post (legacy method for backward compatibility)"""
         post = generics.get_object_or_404(Post, pk=pk)
         user = request.user
         return self._unlike_post(post, user)
-    
-    def _like_post(self, post, user):
-        """Like a post"""
-        # Check if user already liked this post
-        like, created = Like.objects.get_or_create(user=user, post=post)
-        
-        if created:
-            # Create notification for the post author (if not liking own post)
-            if post.author != user:
-                from notifications.models import Notification
-                Notification.objects.create(
-                    recipient=post.author,
-                    actor=user,
-                    verb='liked your post',
-                    target=post
-                )
-            
-            return Response({
-                'message': 'Post liked successfully',
-                'liked': True,
-                'likes_count': post.likes.count()
-            }, status=status.HTTP_201_CREATED)
-        else:
-            return Response({
-                'message': 'You have already liked this post',
-                'liked': True,
-                'likes_count': post.likes.count()
-            }, status=status.HTTP_200_OK)
     
     def _unlike_post(self, post, user):
         """Unlike a post"""
