@@ -137,13 +137,13 @@ class LikeUnlikeView(generics.GenericAPIView):
     """
     permission_classes = [permissions.IsAuthenticated]
     
-    def post(self, request, post_id):
+    def post(self, request, pk):
         """Like a post"""
-        post = get_object_or_404(Post, id=post_id)
+        post = get_object_or_404(Post, pk=pk)
         user = request.user
         
         # Check if user already liked this post
-        like, created = Like.objects.get_or_create(user=user, post=post)
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
         
         if created:
             # Create notification for the post author (if not liking own post)
@@ -168,9 +168,9 @@ class LikeUnlikeView(generics.GenericAPIView):
                 'likes_count': post.likes.count()
             }, status=status.HTTP_200_OK)
     
-    def delete(self, request, post_id):
+    def delete(self, request, pk):
         """Unlike a post"""
-        post = get_object_or_404(Post, id=post_id)
+        post = get_object_or_404(Post, pk=pk)
         user = request.user
         
         try:
@@ -178,6 +178,27 @@ class LikeUnlikeView(generics.GenericAPIView):
             like.delete()
             
             # Remove notification if exists
+            if post.author != user:
+                from notifications.models import Notification
+                Notification.objects.filter(
+                    recipient=post.author,
+                    actor=user,
+                    verb='liked your post',
+                    target_content_type__model='post',
+                    target_object_id=post.id
+                ).delete()
+            
+            return Response({
+                'message': 'Post unliked successfully',
+                'liked': False,
+                'likes_count': post.likes.count()
+            }, status=status.HTTP_200_OK)
+        except Like.DoesNotExist:
+            return Response({
+                'message': 'You have not liked this post',
+                'liked': False,
+                'likes_count': post.likes.count()
+            }, status=status.HTTP_400_BAD_REQUEST)
             if post.author != user:
                 from notifications.models import Notification
                 Notification.objects.filter(
