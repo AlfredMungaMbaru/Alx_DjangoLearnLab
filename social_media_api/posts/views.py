@@ -1,5 +1,5 @@
-from rest_framework import viewsets, permissions, filters, status
-from rest_framework.decorators import action
+from rest_framework import viewsets, permissions, filters, status, generics
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
@@ -65,3 +65,56 @@ class CommentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         return super().create(request, *args, **kwargs)
+
+class FeedView(generics.ListAPIView):
+    """
+    API view to retrieve the feed of posts from users that the current user follows.
+    """
+    serializer_class = PostListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.OrderingFilter]
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        """
+        Return posts from users that the current user follows.
+        """
+        user = self.request.user
+        # Get users that the current user is following
+        following_users = user.following.all()
+        
+        if following_users.exists():
+            # Get posts from followed users, ordered by creation date (newest first)
+            return Post.objects.filter(author__in=following_users).order_by('-created_at')
+        else:
+            # If not following anyone, return empty queryset
+            return Post.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        """
+        Override list method to provide additional context
+        """
+        queryset = self.get_queryset()
+        following_count = request.user.following.count()
+        
+        if following_count == 0:
+            return Response({
+                'message': 'You are not following anyone yet. Follow some users to see their posts in your feed.',
+                'following_count': 0,
+                'posts': []
+            })
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response({
+                'following_count': following_count,
+                'posts': serializer.data
+            })
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'following_count': following_count,
+            'posts': serializer.data
+        })
