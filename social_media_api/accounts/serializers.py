@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from .models import CustomUser
 
@@ -18,7 +19,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password_confirm')
-        user = CustomUser.objects.create_user(**validated_data)
+        User = get_user_model()
+        user = User.objects.create_user(**validated_data)
+        # Create token for the new user
+        Token.objects.create(user=user)
         return user
 
 class UserLoginSerializer(serializers.Serializer):
@@ -39,6 +43,11 @@ class UserLoginSerializer(serializers.Serializer):
             return attrs
         else:
             raise serializers.ValidationError('Must include username and password')
+
+    def get_token(self, user):
+        """Get or create token for user"""
+        token, created = Token.objects.get_or_create(user=user)
+        return token.key
 
 class UserProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
