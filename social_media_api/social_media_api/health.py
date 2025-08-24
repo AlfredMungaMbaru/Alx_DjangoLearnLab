@@ -2,8 +2,13 @@ from django.http import JsonResponse
 from django.db import connection
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-import redis
 import os
+
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
 
 
 @require_http_methods(["GET"])
@@ -36,18 +41,21 @@ def health_check(request):
         health_status["services"]["database"] = f"unhealthy: {str(e)}"
         health_status["status"] = "unhealthy"
     
-    # Check Redis connectivity (if configured)
-    try:
-        redis_url = os.environ.get('REDIS_URL')
-        if redis_url:
-            r = redis.from_url(redis_url)
-            r.ping()
-            health_status["services"]["redis"] = "healthy"
-        else:
-            health_status["services"]["redis"] = "not_configured"
-    except Exception as e:
-        health_status["services"]["redis"] = f"unhealthy: {str(e)}"
-        health_status["status"] = "degraded"
+    # Check Redis connectivity (if configured and available)
+    if REDIS_AVAILABLE:
+        try:
+            redis_url = os.environ.get('REDIS_URL')
+            if redis_url:
+                r = redis.from_url(redis_url)
+                r.ping()
+                health_status["services"]["redis"] = "healthy"
+            else:
+                health_status["services"]["redis"] = "not_configured"
+        except Exception as e:
+            health_status["services"]["redis"] = f"unhealthy: {str(e)}"
+            health_status["status"] = "degraded"
+    else:
+        health_status["services"]["redis"] = "not_available"
     
     # Set timestamp
     from datetime import datetime
