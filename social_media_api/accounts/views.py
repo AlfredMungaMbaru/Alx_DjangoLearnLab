@@ -34,12 +34,12 @@ def user_login(request):
         user = serializer.validated_data['user']
         login(request, user)
         
-        # Get or create token
-        token, created = Token.objects.get_or_create(user=user)
+        # Get token using serializer method
+        token_key = serializer.get_token(user)
         
         return Response({
             'user': UserProfileSerializer(user).data,
-            'token': token.key,
+            'token': token_key,
             'message': 'Login successful'
         }, status=status.HTTP_200_OK)
     
