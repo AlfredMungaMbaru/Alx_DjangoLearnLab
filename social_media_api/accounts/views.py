@@ -76,6 +76,15 @@ class FollowUserView(generics.GenericAPIView):
             
             request.user.follow(user_to_follow)
             
+            # Create notification for the followed user
+            from notifications.models import Notification
+            Notification.objects.create(
+                recipient=user_to_follow,
+                actor=request.user,
+                verb='started following you',
+                target=user_to_follow
+            )
+            
             return Response({
                 'message': f'You are now following {user_to_follow.username}',
                 'user': UserFollowSerializer(user_to_follow, context={'request': request}).data
